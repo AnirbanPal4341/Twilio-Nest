@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Demo Otp</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <link
+      href="https://unpkg.com/vue-simple-notify/dist/vue-simple-notify.min.css"
+      rel="stylesheet"
+    />
+    <link href="/index.css" rel="stylesheet" />
+    <link
+      href="https://unpkg.com/vue-simple-notify/dist/vue-simple-notify.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  </head>
+  <body>
+    <main id="v-app">
+      <section class="login">
+        <h1>Demo Otp Login</h1>
+        <form>
+          <p>Full Name :</p>
+          <input v-model="name" type="text" />
+          <p>Phone No.:</p>
+          <input v-model="phone" type="text" />
+          <button type="submit" @click.prevent="SendOtp()" v-if="!isAuth">
+            Send Otp
+          </button>
+          <p>Enter Otp :</p>
+          <input v-model="otp" type="text" />
+          <button type="submit" @click.prevent="VerifyOtp()" v-if="!isAuth">
+            Verify Otp
+          </button>
+          <p @click="SendOtp(),VerifyOtp(),Submit()" style="color: red">
+            {{msg}}
+          </p>
+          <button type="submit" @click.prevent="Submit()" v-if="isAuth">
+            Submit Data
+          </button>
+          <button type="submit" @click.prevent="Refresh()" v-if="user">
+            Refresh Page
+          </button>
+          <p @click="Submit()" style="color: blue">{{user}}</p>
+        </form>
+        <br />
+      </section>
+      <section></section>
+    </main>
+    <!-- Vue -->
+    <script>
+      var app = new Vue({
+        el: '#v-app',
+        data: {
+          name: '',
+          phone: '',
+          otp: '',
+          msg: '',
+          user: '',
+          isAuth: false,
+        },
+        methods: {
+          SendOtp() {
+            let data = { phone: this.phone };
+            let options = {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json;charset=utf-8',
+              },
+              body: JSON.stringify(data),
+            };
+            let fetchRes = fetch('http://localhost:3000/SendOtp/', options);
+            fetchRes
+              .then((response) => response.json())
+              .then((data) => {
+                if (data.msg == 'pending') {
+                  this.msg = 'SMS OTP sent successfully!';
+                } else {
+                  this.msg = 'Error while sending OTP!';
+                }
+              })
+              .catch((error) => {
+                console.log(error);
+                console.error('Otp error!');
+              });
+          },
+          VerifyOtp() {
+            let data = { phone: this.phone, otp: this.otp };
+            let options = {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json;charset=utf-8',
+              },
+              body: JSON.stringify(data),
+            };
+            let fetchRes = fetch('http://localhost:3000/VerifyOtp/', options);
+            fetchRes
+              .then((response) => response.json())
+              .then((data) => {
+                if (data.msg == 'approved') {
+                  this.msg = 'SMS OTP verified successfully!';
+                  this.isAuth = true;
+                } else {
+                  this.msg = 'Wrong OTP provided!';
+                }
+              })
+              .catch((error) => {
+                console.log(error);
+                console.error('Otp Verify error!');
+              });
+          },
+          Submit() {
+            let data = { name: this.name, phone: this.phone };
+            let options = {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json;charset=utf-8',
+              },
+              body: JSON.stringify(data),
+            };
+            let fetchRes = fetch('http://localhost:3000/Submit/', options);
+            fetchRes
+              .then((response) => response.json())
+              .then((data) => {
+                this.msg = 'Submitted successfully!';
+                this.isAuth = false;
+                this.user = data.data;
+              })
+              .catch((error) => {
+                console.log(error);
+                console.error('Submit error!');
+              });
+          },
+          Refresh() {
+            this.user = '';
+            this.isAuth = '';
+            location.reload();
+          },
+        },
+        created() {},
+      });
+    </script>
+  </body>
+</html>
